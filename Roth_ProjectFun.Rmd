@@ -1,0 +1,104 @@
+---
+title: "Untitled"
+output: pdf_document
+---
+
+```{r}
+master <- read.csv(file="/Users/amroth/data/new_master.csv", sep = ',',header = TRUE)
+master_AS <- read.transactions("/Users/amroth/Data/new_master.csv", format = "basket",sep="," )
+```
+
+Load Packages
+```{r}
+install.packages("arules")
+#install.packages("arulesViz", dependencies = TRUE)
+install.packages("robustbase")
+install.packages("arulesViz")
+#library("arules")
+library("arulesViz")
+library(robustbase)
+library(reshape)
+library(plotly)
+
+```
+
+```{r}
+colnames(master)
+```
+
+
+My brain works well this way, so i did it the hard way before figuring out how to do it a better way in my head.
+```{r}
+
+ggplotly(ggplot(master)+geom_line(aes(x=year, y=suicides.100k.pop, group=sex, color=sex)))
+
+master.females <- master[master$sex == "female",]
+master.females.5 <- master.females[master.females$age == "5-14 years",]
+master.females.15 <- master.females[master.females$age == "15-24 years",]
+master.females.25 <- master.females[master.females$age == "25-34 years",]
+master.females.35 <- master.females[master.females$age == "35-54 years",]
+master.females.55 <- master.females[master.females$age == "55-74 years",]
+master.females.75 <- master.females[master.females$age == "75+ years",]
+
+master.males <- master[master$sex == "male",]
+master.males.5 <- master.males[master.males$age == "5-14 years",]
+master.males.15 <- master.males[master.males$age == "15-24 years",]
+master.males.25 <- master.males[master.males$age == "25-34 years",]
+master.males.35 <- master.males[master.males$age == "35-54 years",]
+master.males.55 <- master.males[master.males$age == "55-74 years",]
+master.males.75 <- master.males[master.males$age == "75+ years",]
+```
+
+
+```{r}
+master.means <- master %>%
+  group_by(year,sex,age) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T) )
+
+master.means.f <- master.females %>%
+  group_by(year,sex,age) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T) )
+
+master.means.m <- master.males %>%
+  group_by(year,sex,age) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T) )
+
+master.country <- master %>%
+  group_by(country,year) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T) )
+
+master.guns <- master %>%
+  group_by(country,year) %>%
+  summarise(mean.reg = mean(registeredFirearms, na.rm = T), mean.unreg = mean(unregisteredFirearms, na.rm = T) )
+
+#All Data
+ggplotly(ggplot(master.means)+geom_line(aes(x=year, y=mean.100k.pop, group=age, color=age, linetype = sex)) + xlab("Years") + ylab("Suicides per 100k population") + ggtitle("Suicides per 100k population by gender and age range"))
+
+ggplotly(ggplot(master.means)+geom_line(aes(x=year, y=mean.total.pop, group=age, color=sex))+ xlab("Years") + ylab("Suicides by total population") + ggtitle("Suicides by total population by gender and age range"))
+
+#Male
+ggplotly(ggplot(master.means.m)+geom_line(aes(x=year, y=mean.100k.pop, group=age, color=age))+ xlab("Years") + ylab("Suicides per 100k population") + ggtitle(" Male Suicides per 100k population by age range"))
+
+
+#Female
+ggplotly(ggplot(master.means.f)+geom_line(aes(x=year, y=mean.100k.pop, group=age, color=age))+ xlab("Years") + ylab("Suicides per 100k population") + ggtitle(" Female Suicides per 100k population by age range"))
+
+
+
+#Countries
+
+ggplotly(ggplot(master.country)+geom_line(aes(x=year, y=mean.100k.pop, color=country))+ xlab("Years") + ylab("Suicides per 100k population") + ggtitle("Countries Suicides per 100k population by age range"))
+
+
+ggplotly(ggplot(master.guns)+geom_line(aes(x=year, y=mean.reg, color=country))+ xlab("Years") + ylab("Suicides per 100k population") + ggtitle("Countries Suicides per 100k population by age range"))
+
+table(master$age, master$generation)
+
+
+
+#To Do
+#Add Internet Usage
+#Look into Generation, Internet Usage, Guns, Region
+#Forecasting
+```
+
