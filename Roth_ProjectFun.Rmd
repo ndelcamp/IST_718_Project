@@ -1,0 +1,209 @@
+---
+title: "Untitled"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+master <- read.csv(file="https://raw.githubusercontent.com/ndelcamp/IST_718_Project/master/new_master.csv", sep = ',',header = TRUE)
+#master_AS <- read.transactions("/Users/amroth/Data/new_master.csv", format = "basket",sep="," )
+```
+
+Load Packages
+```{r}
+#install.packages("arules")
+#install.packages("arulesViz", dependencies = TRUE)
+#install.packages("robustbase")
+#install.packages("arulesViz")
+#install.packages("forecast")
+#install.packages('tseries')
+#library("arules")
+library("arulesViz")
+library(robustbase)
+library(reshape)
+library(plotly)
+library('ggplot2')
+#library(forecast)
+#library('tseries')
+```
+
+```{r}
+colnames(master)
+```
+
+
+My brain works well this way, so i did it the hard way before figuring out how to do it a better way in my head.
+```{r}
+
+#master.females <- master[master$sex == "female",]
+#master.females.5 <- master.females[master.females$age == "5-14 years",]
+#master.females.15 <- master.females[master.females$age == "15-24 years",]
+#master.females.25 <- master.females[master.females$age == "25-34 years",]
+#master.females.35 <- master.females[master.females$age == "35-54 years",]
+#master.females.55 <- master.females[master.females$age == "55-74 years",]
+#master.females.75 <- master.females[master.females$age == "75+ years",]
+
+#master.males <- master[master$sex == "male",]
+#master.males.5 <- master.males[master.males$age == "5-14 years",]
+#master.males.15 <- master.males[master.males$age == "15-24 years",]
+#master.males.25 <- master.males[master.males$age == "25-34 years",]
+#master.males.35 <- master.males[master.males$age == "35-54 years",]
+#master.males.55 <- master.males[master.males$age == "55-74 years",]
+#master.males.75 <- master.males[master.males$age == "75+ years",]
+```
+
+
+```{r}
+
+master.females <- master[master$sex == "female",]
+master.males <- master[master$sex == "male",]
+
+master.data <- master %>%
+  group_by(year) %>%
+  summarise(population = sum(population), suicides = sum(suicides_no), mean.100k.pop = mean(suicides.100k.pop, na.rm = T)) 
+
+master.means <- master %>%
+  group_by(year,sex,age) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T) )
+
+master.means.f <- master.females %>%
+  group_by(year,sex,age) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T) )
+
+master.means.m <- master.males %>%
+  group_by(year,sex,age) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T) )
+
+master.means.f.overall <- master.females %>%
+  group_by(year,sex) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T) )
+
+master.means.m.overall <- master.males %>%
+  group_by(year,sex) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T) )
+
+master.country <- master %>%
+  group_by(country,year) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T), gdp_per_capita.... = mean(gdp_per_capita...., na.rm = T), mean.population = mean(population, na.rm = T) )
+
+
+master.guns <- master %>%
+  group_by(country,year) %>%
+  summarise(mean.reg = mean(registeredFirearms, na.rm = T), mean.unreg = mean(unregisteredFirearms, na.rm = T) )
+
+master.internet <- master %>%
+  group_by(country) %>%
+  summarise(InternetUsers = mean(InternetUsers, na.rm = T), Population = mean(Population, na.rm = T) )
+
+master.internet.country <- master %>%
+  group_by(country) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T), gdp_per_capita.... = mean(gdp_per_capita...., na.rm = T), InternetUsers = mean(InternetUsers, na.rm = T), Population = mean(Population, na.rm = T) )
+
+master.guns.country <- master %>%
+  group_by(country) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T), gdp_per_capita.... = mean(gdp_per_capita...., na.rm = T), registeredFirearms = mean(registeredFirearms, na.rm = T), unregisteredFirearms = mean(unregisteredFirearms, na.rm = T) )
+
+master.internet.guns.country <- master %>%
+  group_by(country) %>%
+  summarise(mean.100k.pop = mean(suicides.100k.pop, na.rm = T), mean.total.pop = mean(suicides_no, na.rm = T), gdp_per_capita.... = mean(gdp_per_capita...., na.rm = T), registeredFirearms = mean(registeredFirearms, na.rm = T), unregisteredFirearms = mean(unregisteredFirearms, na.rm = T), InternetUsers = mean(InternetUsers, na.rm = T), Population = mean(Population, na.rm = T) )
+
+
+table(master$age, master$generation)
+
+#To Do
+#Add Internet Usage
+#Look into Generation, Internet Usage, Guns, Region
+#Forecasting
+```
+
+
+```{r}
+ggplot(master.data, aes(x = year, y = mean.100k.pop)) + geom_line(col = "deepskyblue3", size = 1) + geom_point(col = "deepskyblue3", size = 2) 
+
+```
+
+
+All Data
+Male suicide rates are higher than female suicide rates
+Suicide rates increase as they grow older
+Highest suicides per 100k populartion is males 75+ years old
+```{r}
+#All Data
+ggplotly(ggplot(master.means)+geom_line(aes(x=year, y=mean.100k.pop, group=age, color=age, linetype = sex)) + xlab("Years") + ylab("Suicides per 100k population") + ggtitle("Suicides per 100k population by gender and age range"))
+
+ggplotly(ggplot(master.means)+geom_line(aes(x=year, y=mean.total.pop, group=age, color=sex))+ xlab("Years") + ylab("Suicides by total population") + ggtitle("Suicides by total population by gender and age range"))
+```
+
+Male Suicide
+Suiide rates were in a general decline after 1995 - 1996, but they are now slowly increasing.
+```{r}
+ggplotly(ggplot(master.means.m)+geom_line(aes(x=year, y=mean.100k.pop, group=age, color=age))+ xlab("Years") + ylab("Suicides per 100k population") + ggtitle(" Male Suicides per 100k population by age range"))
+```
+
+Female Suicide
+Suicide rates are in a decline for females, but younger age groups (15-24 years, 25-34 years) are staying the same.
+```{r}
+ggplotly(ggplot(master.means.f)+geom_line(aes(x=year, y=mean.100k.pop, group=age, color=age))+ xlab("Years") + ylab("Suicides per 100k population") + ggtitle(" Female Suicides per 100k population by age range"))
+```
+
+Countries
+First graph shows the mean 
+Second graph shows that GDP per capita has been increasing.
+```{r}
+ggplotly(ggplot(master.country)+geom_line(aes(x=year, y=mean.100k.pop, color=country))+ xlab("Years") + ylab("Suicides per 100k population") + ggtitle("Sucides per 100k population per country, year by year"))
+
+ggplotly(ggplot(master.country)+geom_line(aes(x=year, y=gdp_per_capita...., color=country))+ xlab("Years") + ylab("Suicides per 100k population") + ggtitle("GDP per capita per country, year by year"))
+
+```
+
+Total Suicides in comparison to Internet Users
+Outliers: 
+United States - Mean of Total Suicides - 2.779605e+03, Internet Users - 244,090,854
+Brazil - Mean of Total Suicides - 6.091747e+02, Internet Users - 141,206,801
+Japan - Mean of Total Suicides - 2.169091e+03, Internet Users - 115,845,120
+Russia - Mean of Total Suicides - 3.733772e+03, Internet Users - 109,446,612
+```{r}
+ggplotly(ggplot(master.internet.country, aes(x=mean.total.pop ,y=InternetUsers))+ geom_point(size=3) + geom_smooth(method=lm))
+
+```
+
+Suicides and Unregistered Guns
+Outliers:
+United States - Mean of Total Suicides - 2.779605e+03, Unregistered Firearms - 392,273,257
+Russia - Mean of Total Suicides - 3.733772e+03, Unregistered Firearms - 11,020,000
+Japan - Mean of total suicides - 2.169091e+03, Unregistered Firearms - 201,779
+```{r}
+ggplotly(ggplot(master.guns.country, aes(x=mean.total.pop ,y=unregisteredFirearms))+ geom_point(size=3)+ geom_smooth(method=lm))
+```
+
+Suicides and Registered Guns
+
+```{r}
+ggplotly(ggplot(master.guns.country, aes(x=mean.total.pop ,y=registeredFirearms, color=country))+ geom_point(size=3) + geom_smooth(method=lm))
+
+```
+
+Registered Firearms and Internet Users
+```{r}
+ggplotly(ggplot(master.internet.guns.country, aes(x=registeredFirearms ,y=InternetUsers, color=country))+ geom_point(size=3))
+
+```
+
+
+Female Suicides
+```{r}
+plot(master.means.f.overall$mean.total.pop)
+abline(reg=lm(master.means.f.overall$mean.total.pop~time(master.means.f.overall$mean.total.pop)))
+
+#adf.test(diff(log(master.means.f.overall$mean.total.pop)), alternative="stationary", k=0)
+
+```
+
+
+Male Suicides
+```{r}
+plot(master.means.m.overall$mean.total.pop)
+abline(reg=lm(master.means.m.overall$mean.total.pop~time(master.means.m.overall$mean.total.pop)))
+```
+
